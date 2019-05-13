@@ -2,7 +2,6 @@
 
 namespace app\common\servant;
 
-use think\facade\Log;
 use GuzzleHttp\Client;
 use Swoole\Process\Pool;
 use app\common\tool\RabbitMQTool;
@@ -25,7 +24,7 @@ class InternationalMsg implements BaseServant
         $param = [
             'apikey' => $apikey,
             'mobile' => $data['phone'],
-            'text' => '【CEO网】您正在进行 手机注册，您的验证码是16666'
+            'text' => $data['content']
         ];
         // 请求接口
         $uri = $config['yunpian_api'];
@@ -40,17 +39,17 @@ class InternationalMsg implements BaseServant
             if ($r->getStatusCode() == 200) {
                 $res = json_decode($r->getBody(), true);
                 if ($res['code'] === 0) {
-                    Log::mylog("国际短信发送成功,手机号:{$data['phone']}", $this->fileName);
+                    mylog("国际短信发送成功,手机号:{$data['phone']}", $this->fileName);
                     return true;
                 } else {
-                    Log::mylog("国际短信发送失败,错误信息:{$r->getBody()}", $this->fileName);
+                    mylog("国际短信发送失败,错误信息:{$r->getBody()}", $this->fileName);
                     return false;
                 }
             }
-            Log::mylog("国际短信发送失败,手机号:{$data['phone']}", $this->fileName);
+            mylog("国际短信发送失败,手机号:{$data['phone']}", $this->fileName);
             return false;
         } catch (\Exception $e) {
-            Log::mylog("国际短信发送失败,手机号:{$data['phone']}.msg:{$e->getMessage()}", $this->fileName);
+            mylog("国际短信发送失败,手机号:{$data['phone']}.msg:{$e->getMessage()}", $this->fileName);
             return false;
         }
     }

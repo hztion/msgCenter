@@ -677,33 +677,36 @@ class Request
      */
     public function pathinfo()
     {
-        if (is_null($this->pathinfo)) {
-            if (isset($_GET[$this->config['var_pathinfo']])) {
-                // 判断URL里面是否有兼容模式参数
-                $pathinfo = $_GET[$this->config['var_pathinfo']];
-                unset($_GET[$this->config['var_pathinfo']]);
-            } elseif ($this->isCli()) {
-                // CLI模式下 index.php module/controller/action/params/...
-                $pathinfo = isset($_SERVER['argv'][1]) ? $_SERVER['argv'][1] : '';
-            } elseif ('cli-server' == PHP_SAPI) {
-                $pathinfo = strpos($this->server('REQUEST_URI'), '?') ? strstr($this->server('REQUEST_URI'), '?', true) : $this->server('REQUEST_URI');
-            } elseif ($this->server('PATH_INFO')) {
-                $pathinfo = $this->server('PATH_INFO');
-            }
+        if (isset($_SERVER['PATH_INFO']) && $_SERVER['PATH_INFO'] != '/') {
+            return ltrim($_SERVER['PATH_INFO'], '/');
+        }
+        // if (is_null($this->pathinfo)) {
+        if (isset($_GET[$this->config['var_pathinfo']])) {
+            // 判断URL里面是否有兼容模式参数
+            $pathinfo = $_GET[$this->config['var_pathinfo']];
+            unset($_GET[$this->config['var_pathinfo']]);
+        } elseif ($this->isCli()) {
+            // CLI模式下 index.php module/controller/action/params/...
+            $pathinfo = isset($_SERVER['argv'][1]) ? $_SERVER['argv'][1] : '';
+        } elseif ('cli-server' == PHP_SAPI) {
+            $pathinfo = strpos($this->server('REQUEST_URI'), '?') ? strstr($this->server('REQUEST_URI'), '?', true) : $this->server('REQUEST_URI');
+        } elseif ($this->server('PATH_INFO')) {
+            $pathinfo = $this->server('PATH_INFO');
+        }
 
-            // 分析PATHINFO信息
-            if (!isset($pathinfo)) {
-                foreach ($this->config['pathinfo_fetch'] as $type) {
-                    if ($this->server($type)) {
-                        $pathinfo = (0 === strpos($this->server($type), $this->server('SCRIPT_NAME'))) ?
+        // 分析PATHINFO信息
+        if (!isset($pathinfo)) {
+            foreach ($this->config['pathinfo_fetch'] as $type) {
+                if ($this->server($type)) {
+                    $pathinfo = (0 === strpos($this->server($type), $this->server('SCRIPT_NAME'))) ?
                         substr($this->server($type), strlen($this->server('SCRIPT_NAME'))) : $this->server($type);
-                        break;
-                    }
+                    break;
                 }
             }
-
-            $this->pathinfo = empty($pathinfo) || '/' == $pathinfo ? '' : ltrim($pathinfo, '/');
         }
+
+        $this->pathinfo = empty($pathinfo) || '/' == $pathinfo ? '' : ltrim($pathinfo, '/');
+        // }
 
         return $this->pathinfo;
     }
@@ -715,21 +718,21 @@ class Request
      */
     public function path()
     {
-        if (is_null($this->path)) {
-            $suffix   = $this->config['url_html_suffix'];
-            $pathinfo = $this->pathinfo();
+        // if (is_null($this->path)) {
+        $suffix   = $this->config['url_html_suffix'];
+        $pathinfo = $this->pathinfo();
 
-            if (false === $suffix) {
-                // 禁止伪静态访问
-                $this->path = $pathinfo;
-            } elseif ($suffix) {
-                // 去除正常的URL后缀
-                $this->path = preg_replace('/\.(' . ltrim($suffix, '.') . ')$/i', '', $pathinfo);
-            } else {
-                // 允许任何后缀访问
-                $this->path = preg_replace('/\.' . $this->ext() . '$/i', '', $pathinfo);
-            }
+        if (false === $suffix) {
+            // 禁止伪静态访问
+            $this->path = $pathinfo;
+        } elseif ($suffix) {
+            // 去除正常的URL后缀
+            $this->path = preg_replace('/\.(' . ltrim($suffix, '.') . ')$/i', '', $pathinfo);
+        } else {
+            // 允许任何后缀访问
+            $this->path = preg_replace('/\.' . $this->ext() . '$/i', '', $pathinfo);
         }
+        // }
 
         return $this->path;
     }
@@ -1040,7 +1043,7 @@ class Request
     protected function getInputData($content)
     {
         if (false !== strpos($this->contentType(), 'application/json') || 0 === strpos($content, '{"')) {
-            return (array) json_decode($content, true);
+            return (array)json_decode($content, true);
         } elseif (strpos($content, '=')) {
             parse_str($content, $data);
             return $data;
@@ -1351,7 +1354,7 @@ class Request
             return $data;
         }
 
-        $name = (string) $name;
+        $name = (string)$name;
         if ('' != $name) {
             // 解析name
             if (strpos($name, '/')) {
@@ -1434,7 +1437,7 @@ class Request
             if (is_string($filter) && false === strpos($filter, '/')) {
                 $filter = explode(',', $filter);
             } else {
-                $filter = (array) $filter;
+                $filter = (array)$filter;
             }
         }
 
@@ -1492,26 +1495,26 @@ class Request
     private function typeCast(&$data, $type)
     {
         switch (strtolower($type)) {
-            // 数组
+                // 数组
             case 'a':
-                $data = (array) $data;
+                $data = (array)$data;
                 break;
-            // 数字
+                // 数字
             case 'd':
-                $data = (int) $data;
+                $data = (int)$data;
                 break;
-            // 浮点
+                // 浮点
             case 'f':
-                $data = (float) $data;
+                $data = (float)$data;
                 break;
-            // 布尔
+                // 布尔
             case 'b':
-                $data = (boolean) $data;
+                $data = (boolean)$data;
                 break;
-            // 字符串
+                // 字符串
             case 's':
                 if (is_scalar($data)) {
-                    $data = (string) $data;
+                    $data = (string)$data;
                 } else {
                     throw new \InvalidArgumentException('variable type error：' . gettype($data));
                 }

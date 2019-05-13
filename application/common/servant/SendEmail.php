@@ -2,7 +2,6 @@
 
 namespace app\common\servant;
 
-use think\facade\Log;
 use GuzzleHttp\Client;
 use Swoole\Process\Pool;
 use think\facade\Validate;
@@ -21,11 +20,11 @@ class SendEmail implements BaseServant
     public function sendMessage(array $data): bool
     {
         if (!isset($data['to_email']) || !Validate::isEmail($data['to_email'])) {
-            Log::mylog("该消息不包含邮箱信息,内容:" . json_encode($data, JSON_UNESCAPED_UNICODE), $this->fileName);
+            mylog("该消息不包含邮箱信息,内容:" . json_encode($data, JSON_UNESCAPED_UNICODE), $this->fileName);
             return true;
         }
-        if (!isset($data['from_email']) || !isset($data['template_name'])) {
-            Log::mylog("缺少发件人邮箱或者模板名信息,内容:" . json_encode($data, JSON_UNESCAPED_UNICODE), $this->fileName);
+        if (!isset($data['from_email']) || !isset($data['template_name']) || !isset($data['content'])) {
+            mylog("缺少必要参数,内容:" . json_encode($data, JSON_UNESCAPED_UNICODE), $this->fileName);
             return true;
         }
         $config = config('third_service.send_cloud');
@@ -37,7 +36,13 @@ class SendEmail implements BaseServant
             'apiKey' => $apiKey,
             'from' => $data['from_email'],  // 发件人邮箱
             'fromName' => isset($data['from_name']) ? $data['from_name'] : '',      // 发件人名称
-            'xsmtpapi' => $this->getXsmtpapi($data['template_name'], $data['to_email']),
+            'xsmtpapi' => json_encode([
+                'to' => [$data['to_email']],
+                'sub' => [
+                    '%content%' => [$data['content']],
+                    '%date%' => [date('Y-m-d H:i:s')]
+                ]
+            ]),
             'templateInvokeName' => $data['template_name'],
             'respEmailId' => 'true'
         ];
@@ -49,46 +54,19 @@ class SendEmail implements BaseServant
             if ($r->getStatusCode() == 200) {
                 $res = json_decode($r->getBody(), true);
                 if ($res['result'] && $res['statusCode'] == 200) {
-                    Log::mylog("邮件发送成功,邮箱账号:{$data['to_email']}", $this->fileName);
+                    mylog("邮件发送成功,邮箱账号:{$data['to_email']}", $this->fileName);
                     return true;
                 } else {
-                    Log::mylog("邮件发送失败,错误信息:{$r->getBody()}", $this->fileName);
+                    mylog("邮件发送失败,错误信息:{$r->getBody()}", $this->fileName);
                     return false;
                 }
             }
-            Log::mylog("邮件发送失败,邮箱账号:{$data['to_email']}", $this->fileName);
+            mylog("邮件发送失败,邮箱账号:{$data['to_email']}", $this->fileName);
             return false;
         } catch (\Exception $e) {
-            Log::mylog("邮件发送失败,邮箱账号:{$data['to_email']}.msg:{$e->getMessage()}", $this->fileName);
+            mylog("邮件发送失败,邮箱账号:{$data['to_email']}.msg:{$e->getMessage()}", $this->fileName);
             return false;
         }
-    }
-
-    /**
-     * 获取邮件模板参数
-     *
-     * @param [type] $templateName
-     * @param [type] $toEmail
-     * @return void
-     */
-    private function getXsmtpapi($templateName, $toEmail)
-    {
-        switch ($templateName) {
-            case 'email_binding':
-                $data = [
-                    'to' => [$toEmail],
-                    'sub' => [
-                        '%email_code%' => ['312451'],
-                        '%date%' => [date('Y-m-d H:i:s')]
-                    ]
-                ];
-                break;
-            default:
-                $data = [];
-                break;
-        }
-
-        return json_encode($data);
     }
 
     function workStart(Pool $pool, int $workerId)

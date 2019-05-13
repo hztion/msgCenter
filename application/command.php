@@ -10,5 +10,7 @@
 // +----------------------------------------------------------------------
 
 return [
-    'swoole' => 'app\common\command\SwooleStart'
+    'server' => 'app\common\command\Server',
+    'swoole_pool' => 'app\common\command\SwoolePool',
+    'swoole_http' => 'app\common\command\SwooleHttp'
 ];

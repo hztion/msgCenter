@@ -7,9 +7,13 @@ namespace app\common\enum;
  */
 abstract class CodeEnum
 {
-    const RESPONSE_SUCCESS = 200;    // 响应成功
-    
-    const RESPONSE_ERROR = 400;    // 响应失败
+    const RESPONSE_SUCCESS = 10000;    // 响应成功
 
-    const MISS_PARAMS = 401;    // 缺少必要参数
+    const RESPONSE_ERROR = 10001;    // 响应失败
+
+    const MISS_PARAMS = 20001;    // 缺少必要参数
+
+    const ERROR_MQ_CONFIG = 30001;      // RabbitMQ的连接配置不正确
+
+    const UNKNOWN_MSG_TYPE = 30002;     // 未知rabbitMQ消息类型
 }

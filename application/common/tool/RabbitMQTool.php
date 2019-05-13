@@ -3,7 +3,6 @@
 namespace app\common\tool;
 
 use app\common\enum\CodeEnum;
-use app\common\enum\ErrorMsgEnum;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
@@ -77,8 +76,7 @@ class RabbitMQTool
     {
         $config = config('rabbit_mq.');
         if (!isset($config['rabbit_mq_queue'][$type])) {
-            json(['code' => CodeEnum::RESPONSE_ERROR, 'msg' => ErrorMsgEnum::UNKNOWN_MSG_TYPE])->send();
-            die();
+            return show(['status' => CodeEnum::UNKNOWN_MSG_TYPE]);
         }
         $rabbitConf = $config['rabbit_mq_queue'][$type];
         $config['exchange_name'] = $rabbitConf['exchange_name'];
@@ -104,8 +102,7 @@ class RabbitMQTool
         $password = $this->config['pwd'];
         $vhost = $this->config['vhost'];
         if (empty($host) || empty($port) || empty($user) || empty($password)) {
-            json(['code' => CodeEnum::RESPONSE_ERROR, 'msg' => ErrorMsgEnum::ERROR_MQ_CONFIG])->send();
-            die();
+            return show(['status' => CodeEnum::ERROR_MQ_CONFIG]);
         }
 
         $this->connect = new AMQPStreamConnection($host, $port, $user, $password, $vhost);

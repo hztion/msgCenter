@@ -2,7 +2,6 @@
 
 namespace app\common\servant;
 
-use think\facade\Log;
 use GuzzleHttp\Client;
 use Swoole\Process\Pool;
 use think\facade\Validate;
@@ -24,7 +23,7 @@ class SendMsg implements BaseServant
     public function sendMessage(array $data): bool
     {
         if (!isset($data['phone']) || !Validate::isMobile($data['phone'])) {
-            Log::mylog("该消息不包含手机号,内容:" . json_encode($data, JSON_UNESCAPED_UNICODE), $this->fileName);
+            mylog("该消息不包含手机号,内容:" . json_encode($data, JSON_UNESCAPED_UNICODE), $this->fileName);
             return true;
         }
         $config = config('third_service.');
@@ -48,17 +47,17 @@ class SendMsg implements BaseServant
             if ($r->getStatusCode() == 200) {
                 $res = json_decode($r->getBody(), true);
                 if ($res['code'] === 0) {
-                    Log::mylog("短信发送成功,手机号:{$data['phone']}", $this->fileName);
+                    mylog("短信发送成功,手机号:{$data['phone']}", $this->fileName);
                     return true;
                 } else {
-                    Log::mylog("短信发送失败,错误信息:{$r->getBody()}", $this->fileName);
+                    mylog("短信发送失败,错误信息:{$r->getBody()}", $this->fileName);
                     return false;
                 }
             }
-            Log::mylog("短信发送失败,手机号:{$data['phone']}", $this->fileName);
+            mylog("短信发送失败,手机号:{$data['phone']}", $this->fileName);
             return false;
         } catch (\Exception $e) {
-            Log::mylog("短信发送失败,手机号:{$data['phone']}.msg:{$e->getMessage()}", $this->fileName);
+            mylog("短信发送失败,手机号:{$data['phone']}.msg:{$e->getMessage()}", $this->fileName);
             return false;
         }
     }

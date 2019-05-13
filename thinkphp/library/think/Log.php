@@ -384,38 +384,4 @@ class Log implements LoggerInterface
 
         return $data;
     }
-
-    /**
-     * 自定义日志操作
-     * @access public
-     * @param  mixed  $content    日志信息
-     * @param  string $fileName   文件名
-     * @return void
-     */
-    public function mylog($content, $fileName = '')
-    {
-        $fileSize = '2097152';
-        $logPath = \think\facade\Env::get('root_path') . '/data/log/';
-
-        $fileName = $fileName ?: date('d');
-        $destination = $logPath . date('Ym') . DIRECTORY_SEPARATOR . date('d') . DIRECTORY_SEPARATOR . $fileName . '.log';
-
-        if (is_file($destination) && floor($fileSize) <= filesize($destination)) {
-            try {
-                rename($destination, dirname($destination) . DIRECTORY_SEPARATOR . time() . '-' . basename($destination));
-            } catch (\Exception $e) { }
-        }
-
-        $path = dirname($destination);
-        !is_dir($path) && mkdir($path, 0755, true);
-
-        if (is_array($content)) {
-            $content = json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        }
-
-        $now = date('c');
-        $message = "[{$now}]   " . $content . "\r\n";
-        file_put_contents($destination, $message, FILE_APPEND);
-    }
-
 }

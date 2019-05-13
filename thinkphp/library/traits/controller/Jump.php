@@ -17,8 +17,6 @@ use think\Container;
 use think\exception\HttpResponseException;
 use think\Response;
 use think\response\Redirect;
-use app\common\enum\CodeEnum;
-use app\common\enum\ErrorMsgEnum;
 
 trait Jump
 {
@@ -127,30 +125,6 @@ trait Jump
     }
 
     /**
-     * 返回请求成功封装后的API数据到客户端
-     * @access protected
-     * @param  mixed     $data 要返回的数据
-     * @param  mixed     $msg 提示信息
-     * @return void
-     */
-    protected function jsonSuccess($data = [], $msg = ErrorMsgEnum::RESPONSE_SUCCESS_MSG)
-    {
-        $this->result($data, CodeEnum::RESPONSE_SUCCESS, $msg);
-    }
-
-    /**
-     * 返回请求失败封装后的API数据到客户端
-     * @access protected
-     * @param  mixed     $data 要返回的数据
-     * @param  mixed     $msg 提示信息
-     * @return void
-     */
-    protected function jsonError($code = CodeEnum::RESPONSE_ERROR, $msg = ErrorMsgEnum::RESPONSE_ERROR_MSG, $data = [])
-    {
-        $this->result($data, $code, $msg);
-    }
-
-    /**
      * URL重定向
      * @access protected
      * @param  string         $url 跳转的URL表达式
@@ -188,7 +162,7 @@ trait Jump
         $config = $this->app['config'];
 
         return $isAjax
-        ? $config->get('default_ajax_return')
-        : $config->get('default_return_type');
+            ? $config->get('default_ajax_return')
+            : $config->get('default_return_type');
     }
 }

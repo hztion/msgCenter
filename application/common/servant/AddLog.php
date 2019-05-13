@@ -2,7 +2,6 @@
 
 namespace app\common\servant;
 
-use think\facade\Log;
 use Swoole\Process\Pool;
 use app\common\tool\RabbitMQTool;
 
@@ -19,10 +18,10 @@ class AddLog implements BaseServant
     public function addLog($content)
     {
         try {
-            Log::mylog($content, $this->fileName);
+            mylog($content, $this->fileName);
             return true;
         } catch (\Exception $e) {
-            Log::mylog("操作失败.msg:{$e->getMessage()}", $this->fileName);
+            mylog("操作失败.msg:{$e->getMessage()}", $this->fileName);
             return false;
         }
     }

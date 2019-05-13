@@ -4,9 +4,9 @@ namespace app\common\exception;
 
 
 use Exception;
-use think\exception\Handle;
 use think\facade\Env;
 use think\facade\Log;
+use think\exception\Handle;
 
 class ApiHandleException extends Handle
 {
@@ -47,8 +47,8 @@ class ApiHandleException extends Handle
             $this->recordErrorLog($e);
         }
         $result = [
-            'msg' => $this->message,
-            'code' => $this->status,
+            'message' => $this->message,
+            'status' => $this->status,
         ];
         return json($result, $this->httpCode);
     }
@@ -60,7 +60,7 @@ class ApiHandleException extends Handle
     private function recordErrorLog(Exception $e)
     {
         $ip = $_SERVER['SERVER_ADDR'];
-        $arr = ['11001', '40000','22000'];
+        $arr = ['11001', '40000', '22000'];
         if (isset($e->status) && in_array($e->status, $arr)) {
             return true;
         }
@@ -69,6 +69,6 @@ class ApiHandleException extends Handle
             'path' => Env::get('runtime_path') . 'error_log',
             'level' => ['error'],
         ]);
-        Log::record($ip.$e->getMessage(), 'error');
+        Log::record($ip . $e->getMessage(), 'error');
     }
 }
